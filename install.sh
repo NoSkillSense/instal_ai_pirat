@@ -53,13 +53,13 @@ read -p "Gdy dodasz klucz, naciśnij Enter..."
 
 export GIT_SSH_COMMAND="ssh -i '$DEPLOY_KEY_PATH' -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes"
 
-echo "Klonowanie repozytorium do ${INSTALL_DIR} (gałąź deploy)..."
+echo "Klonowanie repozytorium do ${INSTALL_DIR} (gałąź dev)..."
 if [ -d "$INSTALL_DIR" ]; then
     cd "$INSTALL_DIR"
     git remote set-url origin "$REPO_SSH" 2>/dev/null || true
-    git pull origin deploy 2>/dev/null || git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || true
+    git pull origin dev 2>/dev/null || git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || true
 else
-    git clone -b deploy "$REPO_SSH" "$INSTALL_DIR"
+    git clone -b dev "$REPO_SSH" "$INSTALL_DIR"
     cd "$INSTALL_DIR"
 fi
 
@@ -147,8 +147,8 @@ HAD_CHANGES=false
 if [ -d ".git" ] && [ -f "$DEPLOY_KEY_PATH" ]; then
     export GIT_SSH_COMMAND="ssh -i '$DEPLOY_KEY_PATH' -o StrictHostKeyChecking=accept-new -o IdentitiesOnly=yes"
     BEFORE=$(git rev-parse HEAD 2>/dev/null || true)
-    git fetch origin deploy 2>/dev/null || git fetch origin 2>/dev/null || true
-    git pull origin deploy 2>/dev/null || git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || true
+    git fetch origin dev 2>/dev/null || git fetch origin 2>/dev/null || true
+    git pull origin dev 2>/dev/null || git pull origin main 2>/dev/null || git pull origin master 2>/dev/null || true
     unset GIT_SSH_COMMAND
     AFTER=$(git rev-parse HEAD 2>/dev/null || true)
     [ "$BEFORE" != "$AFTER" ] && HAD_CHANGES=true
