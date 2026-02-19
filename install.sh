@@ -153,6 +153,11 @@ if [ -d ".git" ] && [ -f "$DEPLOY_KEY_PATH" ]; then
     AFTER=$(git rev-parse HEAD 2>/dev/null || true)
     [ "$BEFORE" != "$AFTER" ] && HAD_CHANGES=true
 fi
+if [ "$HAD_CHANGES" = false ] && [ -d ".git" ]; then
+    if ! git diff --quiet HEAD -- src/ package.json package-lock.json Dockerfile.frontend Dockerfile.backend docker-compose.yml nginx.conf backend/ 2>/dev/null; then
+        HAD_CHANGES=true
+    fi
+fi
 
 cd "$COMPOSE_DIR" || { err "Nie znaleziono docker-compose."; exit 1; }
 
