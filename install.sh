@@ -13,6 +13,10 @@ echo ""
 echo -e "${YELLOW}Instalacja zależności...${NC}"
 sudo apt update -qq
 sudo apt install -y git curl ca-certificates gnupg zenity openssh-client 2>/dev/null || true
+# Chromium – kiosk + WebRTC/mikrofon; pakiet zależy od dystrybucji (chromium | chromium-browser)
+if ! command -v chromium &>/dev/null && ! command -v chromium-browser &>/dev/null; then
+    sudo apt install -y chromium 2>/dev/null || sudo apt install -y chromium-browser 2>/dev/null || true
+fi
 
 if ! command -v docker &>/dev/null; then
     echo "Instalacja Dockera..."
@@ -188,16 +192,18 @@ prog 98 "Otwieram przeglądarkę..."
 sleep 0.8
 
 log "Uruchamiam przeglądarkę: $APP_URL"
+# WebRTC / mikrofon: chrome://flags/#enable-webrtc-allow-input-volume-adjustment
+CHROMIUM_WEBRTC_FLAGS=(--enable-features=WebRtcAllowInputVolumeAdjustment)
 run_browser() {
     nohup "$@" "$APP_URL" </dev/null >> /tmp/aipirate-browser.log 2>&1 &
     disown
 }
 if command -v chromium-browser &>/dev/null; then
-    run_browser chromium-browser --kiosk --noerrdialogs --disable-session-crashed-bubble
+    run_browser chromium-browser --kiosk --noerrdialogs --disable-session-crashed-bubble "${CHROMIUM_WEBRTC_FLAGS[@]}"
 elif command -v chromium &>/dev/null; then
-    run_browser chromium --kiosk --noerrdialogs --disable-session-crashed-bubble
+    run_browser chromium --kiosk --noerrdialogs --disable-session-crashed-bubble "${CHROMIUM_WEBRTC_FLAGS[@]}"
 elif command -v google-chrome &>/dev/null; then
-    run_browser google-chrome --kiosk --noerrdialogs --disable-session-crashed-bubble
+    run_browser google-chrome --kiosk --noerrdialogs --disable-session-crashed-bubble "${CHROMIUM_WEBRTC_FLAGS[@]}"
 elif command -v firefox &>/dev/null; then
     nohup firefox -kiosk "$APP_URL" </dev/null >> /tmp/aipirate-browser.log 2>&1 &
     disown
@@ -337,5 +343,10 @@ echo ""
 echo -e "${GREEN}=== Instalacja zakończona ===${NC}"
 echo "Repo: ${INSTALL_DIR}"
 echo "Uruchom: AIPirate.desktop lub AIPirateRestart.desktop (gdy coś poszło nie tak)"
+echo ""
+echo -e "${YELLOW}Przeglądarka (mikrofon / WebRTC):${NC}"
+echo "  Zainstalowano Chromium (jeśli brakowało). Ustaw flagę:"
+echo "  chrome://flags/#enable-webrtc-allow-input-volume-adjustment → Enabled → Relaunch"
+echo "  (Launcher dodaje też --enable-features=WebRtcAllowInputVolumeAdjustment przy starcie.)"
 echo ""
 echo -e "${YELLOW}Wyloguj się i zaloguj ponownie, żeby docker działał bez sudo.${NC}"
